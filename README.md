@@ -1,4 +1,4 @@
-# Sorting Algorithm Extensions for C#
+# Sorting Algorithm Extensions for CS
 
 Hey,
 For school I had to implemented some basic sorting algorithms in C #. I made some extensions for List<>.
