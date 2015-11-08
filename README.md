@@ -1,13 +1,13 @@
-# SortingAlgorithmExtensions
+# Sorting Algorithm Extensions for C#
 
 Hey,
 For school I had to implemented some basic sorting algorithms in C #. I made some extensions for List<>.
 
-* HeapSort
-* AVLtreeSort
-* SelectionSort
-* BubbleSort
-* InsertionSort
+* Heap Sort
+* AVLtree Sort
+* Selection Sort
+* Bubble Sort
+* Insertion Sort
 
 It's possible that OrderBy and OrderByDescending are reversed. 
 
