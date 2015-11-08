@@ -9,6 +9,8 @@ For school I had to implemented some basic sorting algorithms in C #. I made som
 * BubbleSort
 * InsertionSort
 
+It's possible that OrderBy and OrderByDescending are reversed. 
+
 **Usage:**
 ex: list = list.OrderByHeapSort(x => x).ToList();
 
