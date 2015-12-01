@@ -5,15 +5,11 @@ using System.Linq;
 
 namespace SortingAlgorithmExtensions
 {
-	   /* 
-		* SortingAlgorithmExtensions By Thomas Devoogdt
-		* Date: 8/11/2015
-		* GitHub: https://github.com/ThomasDavidDev 
-		*/
-		
+    //SortingAlgorithmExtensions By Thomas Devoogdt
+
     public static class HeapSort
     {
-        public static void Swap<T>(List<T> arr, int x, int y)//function to swap elements
+        public static void Swap<T>(List<T> arr, int x, int y)   //function to swap elements
         {
             T temp = arr[x];
             arr[x] = arr[y];
@@ -79,17 +75,166 @@ namespace SortingAlgorithmExtensions
         }
     }
 
+    public static class MedianHeapSort
+    {
+        public static List<T> OrderByMedianHeapSort<T, TKey>(this List<T> arr, Func<T, TKey> select) where TKey : IComparable<TKey>
+        {
+            List<T> outputList = new List<T>();
+            Heap<T, TKey> minHeap = new Heap<T, TKey>(select, HeapSetting.min);
+            Heap<T, TKey> maxHeap = new Heap<T, TKey>(select, HeapSetting.max);
+            T mean = arr.First();
+
+            for (int i = 0; i < arr.Count; ++i)
+            {
+                if (select(mean).CompareTo(select(arr[i])) > 0)  maxHeap.Add(arr[i]); 
+                else minHeap.Add(arr[i]); 
+
+                if (maxHeap.lenght - minHeap.lenght > 1)
+                {
+                    minHeap.Add(maxHeap.DeleteRoot());
+                    mean = minHeap.GetRoot();
+                }
+                else if (maxHeap.lenght - minHeap.lenght < 0)
+                {
+                    maxHeap.Add(minHeap.DeleteRoot());
+                    mean = maxHeap.GetRoot();
+                }
+            }
+
+            for (int i = 0; i < arr.Count; ++i)
+            {
+                if (outputList.Count != 0 && select(outputList.First()).CompareTo(select(maxHeap.GetRoot())) <= 0)
+                {
+                    outputList.Insert(0, maxHeap.DeleteRoot());
+                }
+                else
+                {
+                    outputList.Add(maxHeap.DeleteRoot());
+                }
+
+                if (maxHeap.lenght < minHeap.lenght && minHeap.lenght != 0)
+                {
+                    maxHeap.Add(minHeap.DeleteRoot());
+                }
+            }
+
+            return outputList;
+        }
+        public static List<T> OrderByMedianHeapSortDescending<T, TKey>(this List<T> arr, Func<T, TKey> select) where TKey : IComparable<TKey>
+        {
+            arr = arr.OrderByMedianHeapSort(select);
+            arr.Reverse();
+            return arr;
+        }
+        public class Heap<T, TKey> where TKey : IComparable<TKey>
+        {
+            public Heap(Func<T, TKey> select, HeapSetting setting)
+            {
+                this.select = select;
+                this.setting = setting;
+            }
+
+            public T GetRoot() { return elements.First(); }
+            public void Add(T item)
+            {
+                elements.Add(item);
+                UpPercolate();
+            }
+            public T DeleteRoot()
+            {
+                if (elements.Count == 0) return default(T);
+                int last = elements.Count - 1;
+                T root = elements[0];
+                elements[0] = elements[last];
+                elements.RemoveAt(last);
+                DownPercolate();
+                return root;
+            }
+
+            private void Swap(int x, int y)
+            {
+                T temp = elements[x];
+                elements[x] = elements[y];
+                elements[y] = temp;
+            }
+            private bool compare(int x, int y)
+            {
+                return ((setting == HeapSetting.max) ? 1 : -1) * select(elements[x]).CompareTo(select(elements[y])) < 0;
+            }
+            private void UpPercolate()
+            {
+                int child = elements.Count;
+                int parent = child / 2;
+
+                while (parent != 0 && compare(parent - 1, child - 1))
+                {
+                    Swap(parent - 1, child - 1);
+                    child = parent;
+                    parent /= 2;
+                }
+            }
+            private void DownPercolate()
+            {
+                int parent = 0;
+                int child = 0;
+                int posChild1 = 1;
+                int posChild2 = 2;
+
+                if (elements.Count == 2)
+                {
+                    posChild1 = 0;
+                    posChild2 = 1;
+                }
+
+                if (posChild2 <= (elements.Count - 1))
+                {
+                    child = compare(posChild2, posChild1) ? posChild1 : posChild2;
+                }
+
+                while (posChild2 <= (elements.Count - 1) && compare(parent, child))
+                {
+                    Swap(parent, child);
+                    parent = child;
+                    posChild1 = parent * 2 + 1;
+                    posChild2 = parent * 2 + 2;
+
+                    if (posChild2 <= (elements.Count - 1))
+                    {
+                        child = compare(posChild2, posChild1) ? posChild1 : posChild2;
+                    }
+                    else return;
+                }
+            }
+
+            private List<T> elements = new List<T>();
+            public int lenght { get { return elements.Count; } }
+            private Func<T, TKey> select;
+            private HeapSetting setting;
+        }
+        public enum HeapSetting { min, max }
+    }
+
     public static class AVLtreeSort
     {
         /* http://www.superstarcoders.com/blogs/posts/efficient-avl-tree-in-c-sharp.aspx */
-        public partial class AvlTree<TKey, TValue> : IEnumerable<TValue>
+        public class AvlTree<TKey, TValue> : IEnumerable<TValue>
         {
-            private IComparer<TKey> _comparer;
-            private AvlNode _root;
+            //private IComparer<TKey> _comparer;
+            //private AvlNode _root;
+            public IComparer<TKey> _comparer_general;
+            public IComparer<TKey> _comparer_search;
+            public AvlNode _root;
 
             public AvlTree(IComparer<TKey> comparer)
             {
-                _comparer = comparer;
+                _comparer_general = comparer;
+                _comparer_search = comparer;
+            }
+
+            public AvlTree(IComparer<TKey> Searchcomparer, IComparer<TKey> Generalcomparer)
+            {
+                _comparer_general = Generalcomparer;
+                _comparer_search = Searchcomparer;
             }
 
             public AvlTree()
@@ -119,11 +264,11 @@ namespace SortingAlgorithmExtensions
 
                 while (node != null)
                 {
-                    if (_comparer.Compare(key, node.Key) < 0)
+                    if (_comparer_general.Compare(key, node.Key) < 0)
                     {
                         node = node.Left;
                     }
-                    else if (_comparer.Compare(key, node.Key) > 0)
+                    else if (_comparer_general.Compare(key, node.Key) > 0)
                     {
                         node = node.Right;
                     }
@@ -139,6 +284,16 @@ namespace SortingAlgorithmExtensions
 
                 return false;
             }
+            public bool StringSearch(TKey key, out List<TValue> value)
+            {
+                AvlNodeEnumerator loop = new AvlNodeEnumerator(_root);
+                value = new List<TValue>();
+                while (loop.MoveNext())
+                {
+                    if (_comparer_search.Compare(loop.CurrentKey, key) == 0) value.Add(loop.Current);
+                }
+                return value.Count > 0 ? true : false;
+            }
 
             public void Insert(TKey key, TValue value)
             {
@@ -152,7 +307,7 @@ namespace SortingAlgorithmExtensions
 
                     while (node != null)
                     {
-                        int compare = _comparer.Compare(key, node.Key);
+                        int compare = _comparer_general.Compare(key, node.Key);
 
                         if (compare < 0)
                         {
@@ -252,11 +407,11 @@ namespace SortingAlgorithmExtensions
 
                 while (node != null)
                 {
-                    if (_comparer.Compare(key, node.Key) < 0)
+                    if (_comparer_general.Compare(key, node.Key) < 0)
                     {
                         node = node.Left;
                     }
-                    else if (_comparer.Compare(key, node.Key) > 0)
+                    else if (_comparer_general.Compare(key, node.Key) > 0)
                     {
                         node = node.Right;
                     }
@@ -668,7 +823,7 @@ namespace SortingAlgorithmExtensions
                 }
             }
 
-            sealed class AvlNode
+            public class AvlNode
             {
                 public AvlNode Parent;
                 public AvlNode Left;
@@ -678,7 +833,7 @@ namespace SortingAlgorithmExtensions
                 public int Balance;
             }
 
-            sealed class AvlNodeEnumerator : IEnumerator<TValue>
+            public class AvlNodeEnumerator : IEnumerator<TValue>
             {
                 private AvlNode _root;
                 private Action _action;
@@ -749,6 +904,14 @@ namespace SortingAlgorithmExtensions
                     }
                 }
 
+                public TKey CurrentKey
+                {
+                    get
+                    {
+                        return _current.Key;
+                    }
+                }
+
                 object IEnumerator.Current
                 {
                     get
@@ -787,21 +950,9 @@ namespace SortingAlgorithmExtensions
         }
     }
 
-    public static class MedianHeapSort
-    {   //To Do
-        public static List<T> OrderByMedianHeapSort<T, TKey>(this List<T> arr, Func<T, TKey> select, bool MaxTrMinFa = true) where TKey : IComparable<TKey>
-        {
-            return arr;
-        }
-        public static List<T> OrderByMedianHeapSortDescending<T, TKey>(this List<T> arr, Func<T, TKey> select) where TKey : IComparable<TKey>
-        {
-            return arr.OrderByMedianHeapSort(select, false);
-        }
-    }
-
     public static class SelectionSort
     {
-        public static void Swap<T>(List<T> arr, int x, int y)//function to swap elements
+        public static void Swap<T>(List<T> arr, int x, int y)   //function to swap elements
         {
             T temp = arr[x];
             arr[x] = arr[y];
@@ -828,7 +979,7 @@ namespace SortingAlgorithmExtensions
 
     public static class BubbleSort
     {
-        public static void Swap<T>(List<T> arr, int x, int y)//function to swap elements
+        public static void Swap<T>(List<T> arr, int x, int y)   //function to swap elements
         {
             T temp = arr[x];
             arr[x] = arr[y];
