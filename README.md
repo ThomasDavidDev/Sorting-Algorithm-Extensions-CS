@@ -1,7 +1,7 @@
 # Sorting Algorithm Extensions for CS
 
 Hey,
-For school I had to implemented some basic sorting algorithms in C #. I made some extensions for List<>.
+For school I had to implemented some basic sorting algorithms in 'C#'. I made some extensions for List<>.
 
 * Heap Sort
 * Median Heap Sort
